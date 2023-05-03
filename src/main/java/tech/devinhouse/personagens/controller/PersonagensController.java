@@ -28,6 +28,7 @@ public class PersonagensController {
     @Autowired
     private PersonagemService service;
 
+
     @PostMapping
     public ResponseEntity inserir(@RequestBody @Valid PersonagemRequest request) {
         Personagem personagem = modelMapper.map(request, Personagem.class);

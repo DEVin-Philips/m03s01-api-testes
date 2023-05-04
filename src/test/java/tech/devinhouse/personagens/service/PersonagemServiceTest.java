@@ -102,4 +102,43 @@ class PersonagemServiceTest {
         assertEquals(personagemInserido.getId(), resultado.getId());
     }
 
+    @Test
+    @DisplayName("Quando existe personagem com o cpf informado, deve retornar o personagem")
+    void consultar_cpfExistente() {
+        // given
+        Long cpf = 12345678901L;
+        Personagem personagem = Personagem.builder().id(1L).nome("Nome").cpf(cpf).build();
+        Mockito.when(personagemRepo.findByCpf(Mockito.anyLong()))
+                .thenReturn(Optional.of(personagem));
+        // when
+        Personagem resultado = service.consultarPor(cpf);
+        // then
+        assertNotNull(resultado);
+        assertEquals(cpf, resultado.getCpf());
+    }
+
+    @Test
+    @DisplayName("Quando nao existe personagem com o cpf informado, deve lancar excecao")
+    void consultarPorCpf_naoEncontrado() {
+        assertThrows(RegistroNaoEncontradoException.class, () -> service.consultarPor(1L));
+    }
+
+    @Test
+    @DisplayName("Quando existe personagem com o id indicado, deve excluir peersonagem")
+    void excluir() {
+        Long id = 1L;
+        Personagem personagem = Personagem.builder().id(id).nome("Nome").cpf(123L).build();
+        Mockito.when(personagemRepo.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(personagem));
+        assertDoesNotThrow(() -> service.excluir(id));
+    }
+
+    @Test
+    @DisplayName("Quando nao existe personagem com o id indicado, deve lacar excecao")
+    void excluir_inexistente() {
+        assertThrows(RegistroNaoEncontradoException.class, () -> service.excluir(1L));
+    }
+
+    //TODO: Implementar demais métodos de testes para as demais funcionalidades do service...
+
 }

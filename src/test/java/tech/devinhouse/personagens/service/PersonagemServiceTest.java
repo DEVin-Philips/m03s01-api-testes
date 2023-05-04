@@ -7,9 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tech.devinhouse.personagens.exception.RegistroExistenteException;
 import tech.devinhouse.personagens.exception.RegistroNaoEncontradoException;
 import tech.devinhouse.personagens.model.Personagem;
 import tech.devinhouse.personagens.repository.PersonagemRepository;
+
+import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,6 +49,57 @@ class PersonagemServiceTest {
 //        Mockito.when(personagemRepo.findById(Mockito.anyLong()))
 //                .thenReturn(Optional.empty());
         assertThrows(RegistroNaoEncontradoException.class, () -> service.consultar(id));
+    }
+
+    @Test
+    @DisplayName("Quando nao ha registros de personagens, deve retornar lista vazia")
+    void consultar_semRegistros() {
+        List<Personagem> lista = service.consultar();
+        assertNotNull(lista);
+        assertTrue(lista.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Quando ha registros de personagens, deve retornar lista com valores")
+    void consultar_listaComRegistros() {
+        // given
+        List<Personagem> personagens = List.of(
+            new Personagem(1L, 123456789L, "sapato", LocalDate.now().minusYears(20), "Serie do Sapato"),
+            new Personagem(2L, 222222222L, "gato", LocalDate.now().minusYears(15), "Serie do Garfield")
+        );
+        Mockito.when(personagemRepo.findAll()).thenReturn(personagens);
+        // when
+        List<Personagem> lista = service.consultar();
+        // then
+        assertNotNull(lista);
+        assertFalse(lista.isEmpty());
+        assertEquals(personagens.size(), lista.size());
+    }
+
+    @Test
+    @DisplayName("Quando tentativa de inserir personagem com cpf já cadastrada, deve lancar excecao")
+    void inserir_cpfJaExistente() {
+        Personagem personagem = Personagem.builder().cpf(123L).nome("Nome").build();
+        Mockito.when(personagemRepo.existsPersonagemByCpf(Mockito.anyLong()))
+                .thenReturn(true);
+        assertThrows(RegistroExistenteException.class, () -> service.inserir(personagem));
+    }
+
+    @Test
+    @DisplayName("Quando tentativa de inserir personagem com cpf nao cadastrada, deve inserir personagem")
+    void inserir() {
+        // given
+        Personagem personagemOriginal = Personagem.builder().cpf(123L).nome("Nome").build();
+        Personagem personagemInserido = Personagem.builder().id(1L).cpf(123L).nome("Nome").build();
+        Mockito.when(personagemRepo.existsPersonagemByCpf(Mockito.anyLong()))
+                .thenReturn(false);
+        Mockito.when(personagemRepo.save(Mockito.any(Personagem.class)))
+                .thenReturn(personagemInserido);
+        // when
+        Personagem resultado = service.inserir(personagemOriginal);
+        // then
+        assertNotNull(resultado);
+        assertEquals(personagemInserido.getId(), resultado.getId());
     }
 
 }

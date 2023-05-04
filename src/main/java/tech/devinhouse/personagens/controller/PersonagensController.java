@@ -42,7 +42,7 @@ public class PersonagensController {
         List<Personagem> personagens = service.consultar();
         List<PersonagemResponse> resp = personagens.stream()
                 .map(p -> modelMapper.map(p, PersonagemResponse.class)).toList();
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(resp); // 200
     }
 
     @GetMapping("{id}")
